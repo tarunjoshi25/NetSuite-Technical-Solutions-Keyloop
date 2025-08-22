@@ -15,10 +15,11 @@
  * @NApiVersion 2.1
  */
 
-define(['N/search', 'N/log'], function (search, log) {
+define(['N/search', 'N/log', 'N/runtime'], function (search, log, runtime) {
 
     const LOG_EACH_PAGE = true; // Define flag to toggle per-page logs.
-
+    const GOVERNANCE_THRESHOLD = 100; // Minimum safe units to continue processing
+    
     /**
      * Main function to fetch Sales Orders pending approval above £10,000 in the last 30 days
      * Handles large result sets efficiently using pageSize of 4000
@@ -90,18 +91,27 @@ define(['N/search', 'N/log'], function (search, log) {
                 // Process each result in the page
 
                 page.data.forEach(function (result) {
-                    var row = {
-                        id: result.id,
-                        tranid: result.getValue('tranid'),
-                        customer: result.getText('entity'),
-                        trandate: result.getValue('trandate'),
-                        status: result.getText('status'),
-                        total: parseFloat(result.getValue('total')), //I use here parseFloat if in future we do any calculation in later stage.
-                        currency: result.getText('currency')
-                    };
 
-                    results.push(row); // Store record in results array and this is the same empty array which we have initialized in line 27.
-                });
+                // Governance usage check
+                var remainingUsage = runtime.getCurrentScript().getRemainingUsage();
+                if (remainingUsage < GOVERNANCE_THRESHOLD) {
+                    log.warning('Low Governance Usage', 'Remaining usage: ' + remainingUsage + ' units. Stopping execution.');
+                    return; // Exit the current page's loop early
+                }
+            
+                var row = {
+                    id: result.id,
+                    tranid: result.getValue('tranid'),
+                    customer: result.getText('entity'),
+                    trandate: result.getValue('trandate'),
+                    status: result.getText('status'),
+                    total: parseFloat(result.getValue('total')),
+                    currency: result.getText('currency')
+                };
+            
+                results.push(row);
+            });
+
             });
 
             //Below we are logging final results logs
@@ -176,4 +186,5 @@ define(['N/search', 'N/log'], function (search, log) {
 //2- RestLet script we can right for above code if any business user say that we need your NetSuite data for the external tool then we can transfer it in JSON format and get method we use here once we deploy this in NetSuite then we can share the External URL with third party tool members and they can check the data from there end. PostMan is the tool they can use to see the data .
 
 //3- Suitelet and Map reduce script also we can create with above code.
+
 
