@@ -147,7 +147,7 @@ define(['N/search', 'N/log'], function (search, log) {
         try {
             var currencySearch = search.create({
                 type: search.Type.CURRENCY,
-                filters: [['isoCode', 'is', currencyCode]], //I use here iso code because it is consistent like AUT,USA,GBP or many more.
+                filters: [['name', 'is', currencyCode]], //name is the way to filter the currency.
                 columns: ['internalid']
             });
 
@@ -176,3 +176,4 @@ define(['N/search', 'N/log'], function (search, log) {
 //2- RestLet script we can right for above code if any business user say that we need your NetSuite data for the external tool then we can transfer it in JSON format and get method we use here once we deploy this in NetSuite then we can share the External URL with third party tool members and they can check the data from there end. PostMan is the tool they can use to see the data .
 
 //3- Suitelet and Map reduce script also we can create with above code.
+
